@@ -1,38 +1,36 @@
 #Codigo para realizar mapa de salinidad de Venezuela:
 
-#Establecemos directorio de trabajo:
 setwd("C:/Sevilla/Mario/Venezuela/Salinidad/Salinidad")
-
-# Verificamos directotio de trabajo:
 getwd()
-
-#Activamos paquetes necesarios:
 library("aqp")
 
-#Cargamos la tabla de los horizontes de los sitios de muestreos:
-horizontes <- read.table("C:/Sevilla/Mario/Venezuela/Salinidad/Salinidad/Tablas/Sal_horizontes.csv", sep=",", dec = ".", header=TRUE)
-
-#Observamos los nombres de las columnas:
+horizontes <- read.csv(file = "hori_inia_soter_230320.csv", header=TRUE)
 names(horizontes)
+str(horizontes)
 
-#Observamos resumen estadisticos de cada columna o variables, para ver datos extraños:
-summary(horizontes)
+#Eliminamos las columnas no necesarias:
+horizontes <- horizontes[, -c(2, 43, 42, 44, 45 ) ]
+summary(horizontes$CON_EXT_SA)
 
-#Eliminamos columnas sin datos:
-horizontes1 <- horizontes[,-(42:51)]
+boxplot(horizontes$CON_EXT_SA)
+hist(horizontes$CON_EXT_SA)
 
-#Verificamos la eliminacion anterior:
-summary(horizontes1)
+#Eliminamos los valores de CE mayores a 10:
+horizontes <- horizontes[horizontes$CON_EXT_SA < 10,]
 
-#Observamos la estructura del objeto R de los horizontes y vemos si todas las columnas
-# tienen el tipo de campo correctos (int, factor, num, etc):
-str(horizontes1)
+# Verificamos y eliminamos valores "NA" de CE:
+eliminar <- which(is.na(horizontes$CON_EXT_SA))
+horizontes1 <- horizontes[-eliminar,]
+summary(horizontes1$CON_EXT_SA)
+boxplot(horizontes1$CON_EXT_SA)
+
+#Prueba de normalidad:
+normalidad <- shapiro.test(horizontes1$CON_EXT_SA)
+print(normalidad)
+#si p-value es menor a 0.05 es no normal.
 
 #Observamos el numero de filas y columnas del objeto R:
 dim(horizontes1)
-
-#Observamos diagramas de cajas para ver como se comportan los datos: 
-boxplot(horizontes1[,21:41])
 
 #Creamos un objeto R del tipo de SoilProfileCollection:
 depths(horizontes1) <- CODIGO ~ PROF_S + PROF_I
@@ -43,7 +41,3 @@ Errores <-  checkHzDepthLogic(horizontes1)
 
 #vemos un dataframe con los posibles errores:
 View(Errores, getOption("max.print"))
-
-Errores
-
-
